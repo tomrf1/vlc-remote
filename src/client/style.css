@@ -47,3 +47,14 @@
 .stopButton {
     background-color: #a85d32;
 }
+
+.seekContainer {
+    display: flex;
+    flex-direction: row;
+}
+
+.seekButton {
+    flex: 1;
+    background-color: #9dfac9;
+    font-weight: 700;
+}

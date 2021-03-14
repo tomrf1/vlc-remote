@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 const { getVideosList } = require('./videosList')
-const { startVlc, pauseVlc, resumeVlc, stopVlc } = require('./vlc')
+const Vlc = require('./vlc')
 
 const port = 3000;
 const videoPath = process.env.VIDEO_PATH;
@@ -25,23 +25,28 @@ app.get('/videos', (req, res) => {
 
 app.put(/^\/videos\/(.+)/, (req, res) => {
   const path = req.params[0].replace(/(\s+)/g, '\\$1')
-  startVlc(`${videoPath}/${path}`);
+  Vlc.start(`${videoPath}/${path}`);
   res.send(req.params)
 })
 
 app.put('/video/pause', (req, res) => {
-  pauseVlc();
-  res.send('ok');
+  Vlc.pause().then(() => res.send('ok'));
 })
 
 app.put('/video/resume', (req, res) => {
-  resumeVlc();
-  res.send('ok');
+  Vlc.resume().then(() => res.send('ok'));
 })
 
 app.put('/video/stop', (req, res) => {
-  stopVlc();
-  res.send('ok');
+  Vlc.stop().then(() => res.send('ok'));
+})
+
+app.put('/video/seek/:us(-?\\d+)', (req, res) => {
+  Vlc.seek(req.params.us as number).then(() => res.send('ok'));
+})
+
+app.get('/video/position', (req, res) => {
+  Vlc.position().then(position => res.send({position: position as number}))
 })
 
 app.listen(port, () => {

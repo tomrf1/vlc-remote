@@ -1,12 +1,34 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { VideoList } from '../shared/models';
+import useInterval from './useInterval';
 
 interface Playing {
     path: string;
     paused: boolean;
+    position: number;
 }
 type PlaybackState = null | Playing;
+
+const OneSecondInUS = 1000000;
+
+interface TimerProps {
+    playbackState: PlaybackState,
+    setPosition: (position: number) => void
+}
+function Timer(props: TimerProps): React.ReactElement<TimerProps> {
+    useInterval(() => {
+        if (!props.playbackState.paused) {
+            props.setPosition(props.playbackState.position+1)
+        }
+    }, 1000);
+
+    const mins = `${Math.floor(props.playbackState.position/60)}`;
+    const seconds = `${props.playbackState.position%60}`.padStart(2, '0');
+    return (
+        <div>{`${mins}:${seconds}`}</div>
+    )
+}
 
 export default function Videos(): React.ReactElement {
     const [videos, setVideos] = useState<VideoList>({});
@@ -18,6 +40,11 @@ export default function Videos(): React.ReactElement {
             .then(setVideos);
     }, []);
 
+    const fetchPosition = (): Promise<number> =>
+        fetch('/video/position')
+            .then(resp => resp.json())
+            .then(json => Math.round(json.position as number / OneSecondInUS));
+
     const playVideo = (path: string) => {
         if (playbackState === null) {
             fetch(
@@ -25,10 +52,50 @@ export default function Videos(): React.ReactElement {
                 { method: 'PUT' }
             ).then(result => {
                 if (result.ok) {
-                    setPlaybackState({path: path, paused: false});
+                    setPlaybackState({path: path, paused: false, position: 0});
                 }
             });
         }
+    }
+
+    const togglePause = (paused: boolean) => {
+        if (paused) {
+            fetch('/video/resume', { method: 'PUT' }).then(resp => {
+                if (resp.ok) {
+                    setPlaybackState({...playbackState, paused: false});
+                }
+            })
+        } else {
+            fetch('/video/pause', { method: 'PUT' }).then(resp => {
+                if (resp.ok) {
+                    fetchPosition().then(position => 
+                        setPlaybackState({
+                            ...playbackState,
+                            paused: true,
+                            position
+                        })
+                    );
+                }
+            })
+        }
+    }
+
+    const stop = () => {
+        fetch('/video/stop', { method: 'PUT'} ).then(resp => {
+            if (resp.ok) {
+                setPlaybackState(null);
+            }
+        })
+    }
+
+    const seek = (us: number) => () => {
+        fetch(`/video/seek/${us}`, { method: 'PUT'})
+            .then(fetchPosition)
+            .then(position => setPlaybackState({
+                ...playbackState,
+                position
+            })
+        )
     }
 
     const renderVideos = (videos: VideoList, path: string) => (
@@ -58,30 +125,6 @@ export default function Videos(): React.ReactElement {
         </div>
     );
 
-    const togglePause = (paused: boolean) => {
-        if (paused) {
-            fetch('/video/resume', { method: 'PUT' }).then(resp => {
-                if (resp.ok) {
-                    setPlaybackState({...playbackState, paused: false});
-                }
-            })
-        } else {
-            fetch('/video/pause', { method: 'PUT' }).then(resp => {
-                if (resp.ok) {
-                    setPlaybackState({...playbackState, paused: true});
-                }
-            })
-        }
-    }
-
-    const stop = () => {
-        fetch('/video/stop', { method: 'PUT'} ).then(resp => {
-            if (resp.ok) {
-                setPlaybackState(null);
-            }
-        })
-    }
-
     return (
         <div>
             { renderVideos(videos, '') }
@@ -100,6 +143,24 @@ export default function Videos(): React.ReactElement {
                     >
                         Stop
                     </div>
+                    <div className="seekContainer">
+                        <div
+                            className="seekButton button"
+                            onClick={seek(-OneSecondInUS*15)}
+                        >
+                            {'<<'}
+                        </div>
+                        <div
+                            className="seekButton button"
+                            onClick={seek(OneSecondInUS*15)}
+                        >
+                            {'>>'}
+                        </div>
+                    </div>
+                    <Timer 
+                        playbackState={playbackState} 
+                        setPosition={position => setPlaybackState({...playbackState, position})}
+                    />
                 </div>
             )}
         </div>
