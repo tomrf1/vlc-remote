@@ -49,6 +49,10 @@ app.get('/video/position', (req, res) => {
   Vlc.position().then(position => res.send({position: position as number}))
 })
 
+app.get('/video/length', (req, res) => {
+  Vlc.length().then(metadata => res.send(metadata))
+})
+
 app.listen(port, () => {
   console.log(`Running on http://localhost:${port}`)
 })

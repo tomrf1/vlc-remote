@@ -33,4 +33,23 @@ const position = () => execute(
     'qdbus org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2 org.freedesktop.DBus.Properties.Get org.mpris.MediaPlayer2.Player Position'
 )
 
-export { start, pause, resume, stop, seek, position }
+const lengthRegex = /^mpris:length: (\d*)$/;
+const length = (): Promise<{length: number}> => execute(
+    'qdbus org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2 org.freedesktop.DBus.Properties.Get org.mpris.MediaPlayer2.Player Metadata'
+).then(metadata => {
+    const token = metadata.split('\n').find(token => token.includes('mpris:length'));
+    if (token) {
+        const matches = token.match(lengthRegex);
+        if (matches[1]) {
+            return Promise.resolve({length: matches[1] as number});
+        } else {
+            console.log('Cannot parse token', token)
+            return Promise.reject('Not found')
+        }
+    } else {
+        console.log('No length found in metadata:', metadata)
+        return Promise.reject('Not found');
+    }
+})
+
+export { start, pause, resume, stop, seek, position, length }

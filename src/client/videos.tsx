@@ -12,9 +12,16 @@ type PlaybackState = null | Playing;
 
 const OneSecondInUS = 1000000;
 
+const minsAndSecs = (s: number): string => {
+    const mins = `${Math.floor(s/60)}`;
+    const seconds = `${s%60}`.padStart(2, '0');
+    return `${mins}:${seconds}`;
+}
+
 interface TimerProps {
-    playbackState: PlaybackState,
-    setPosition: (position: number) => void
+    playbackState: PlaybackState;
+    setPosition: (position: number) => void;
+    length?: number;
 }
 function Timer(props: TimerProps): React.ReactElement<TimerProps> {
     useInterval(() => {
@@ -23,16 +30,17 @@ function Timer(props: TimerProps): React.ReactElement<TimerProps> {
         }
     }, 1000);
 
-    const mins = `${Math.floor(props.playbackState.position/60)}`;
-    const seconds = `${props.playbackState.position%60}`.padStart(2, '0');
+    const lengthString = props.length ? ` / ${minsAndSecs(props.length)}` : '';
+
     return (
-        <div>{`${mins}:${seconds}`}</div>
+        <div>{minsAndSecs(props.playbackState.position)}{lengthString}</div>
     )
 }
 
 export default function Videos(): React.ReactElement {
     const [videos, setVideos] = useState<VideoList>({});
     const [playbackState, setPlaybackState] = useState<PlaybackState>(null);
+    const [length, setLength] = useState<number | null>(null);
 
     useEffect(() => {
         fetch('/videos')
@@ -53,8 +61,16 @@ export default function Videos(): React.ReactElement {
             ).then(result => {
                 if (result.ok) {
                     setPlaybackState({path: path, paused: false, position: 0});
+
+                    setTimeout(() => fetch('video/length')
+                        .then(resp => resp.json())
+                        .then(json => {
+                            setLength(Math.round(json.length / OneSecondInUS))
+                        }),
+                        2000
+                    );
                 }
-            });
+            })
         }
     }
 
@@ -160,6 +176,7 @@ export default function Videos(): React.ReactElement {
                     <Timer 
                         playbackState={playbackState} 
                         setPosition={position => setPlaybackState({...playbackState, position})}
+                        length={length}
                     />
                 </div>
             )}
