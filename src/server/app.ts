@@ -11,11 +11,6 @@ app.use(cors());
 app.options('*', cors());
 
 app.use(express.static('dist/client'))
-// app.use(express.static('data'))
-
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
 
 app.get('/videos', (req, res) => {
   getVideosList(videoPath).then(r => {
