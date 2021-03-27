@@ -28,6 +28,12 @@
     background-color: #32a891;
 }
 
+.videoContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
 .playbackContainer {
     position: sticky;
     border: 1px solid black;

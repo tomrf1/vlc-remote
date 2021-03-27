@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 import { VideoList, Video } from '../shared/models';
 
-export const getVideosList = (p: string): Promise<VideoList> => new Promise((resolve, reject) => {
+export const getVideosList = (p: string, history: string[]): Promise<VideoList> => new Promise((resolve, reject) => {
     fs.readdir(p, function(err, list) {
         if (err) {
             reject(err)
@@ -15,9 +15,10 @@ export const getVideosList = (p: string): Promise<VideoList> => new Promise((res
                             fReject(err)
                         } else {
                             if (stat && stat.isDirectory()) {
-                                getVideosList(file).then(r => fResolve([f, r]));
+                                getVideosList(file, history).then(r => fResolve([f, r]));
                             } else {
-                                fResolve([f, {size: stat.size, created: stat.birthtime}]);
+                                const viewed = history.includes(`${p}/${f}`);
+                                fResolve([f, {size: stat.size, created: stat.birthtime, viewed: viewed}]);
                             }
                         }
                     })

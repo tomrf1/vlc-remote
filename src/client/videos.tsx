@@ -71,7 +71,7 @@ export default function Videos(): React.ReactElement {
     const playVideo = (path: string) => {
         if (playbackState === null) {
             fetch(
-                `/videos/${path}`,
+                `/videos${path}`,
                 { method: 'PUT' }
             ).then(result => {
                 if (result.ok) {
@@ -130,25 +130,48 @@ export default function Videos(): React.ReactElement {
         )
     }
 
+    const setViewed = (path: string) => {
+        fetch(`/videos/viewed${path}`, { method: 'POST'})
+            .then(r => console.log(r))
+    }
+    const unsetViewed = (path: string) => {
+        fetch(`/videos/viewed${path}`, { method: 'DELETE'})
+            .then(r => console.log(r))
+    }
+
     const renderVideos = (videos: VideoList, path: string) => (
         <div className="videoDir">
             {
                 Object.keys(videos).map(key => {
+                    const fullPath = `${path}/${key}`;
                     if (videos[key].size) {
                         return (
-                            <div 
-                                className="videoName button"
-                                key={key}
-                                onClick={() => playVideo(`${path}/${key}`)}
-                            >
-                                <span>{key}</span>
+                            <div className="videoContainer">
+                                <div 
+                                    className="videoName button"
+                                    key={key}
+                                    onClick={() => playVideo(fullPath)}
+                                >
+                                    <span>{key}</span>
+                                </div>
+                                <div className="viewed">
+                                    <input 
+                                        type="checkbox" 
+                                        defaultChecked={videos[key].viewed === true} 
+                                        id={fullPath}
+                                        onClick={(event: React.MouseEvent<HTMLInputElement, MouseEvent>): void => {
+                                            event.currentTarget.checked === true ? setViewed(fullPath) : unsetViewed(fullPath)
+                                        }}
+                                    />
+                                    <label htmlFor={fullPath}>Viewed</label>
+                                </div>
                             </div>
                         )
                     } else {
                         return (
                             <>
                                 <div className="videoDirName" key={key}>{key}</div>
-                                {renderVideos(videos[key] as VideoList, `${path}/${key}`)}
+                                {renderVideos(videos[key] as VideoList, fullPath)}
                             </>
                         )                 
                     }
