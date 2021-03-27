@@ -21,12 +21,17 @@ const minsAndSecs = (s: number): string => {
 interface TimerProps {
     playbackState: PlaybackState;
     setPosition: (position: number) => void;
+    fetchPosition: () => Promise<number>;
     length?: number;
 }
 function Timer(props: TimerProps): React.ReactElement<TimerProps> {
     useInterval(() => {
         if (!props.playbackState.paused) {
-            props.setPosition(props.playbackState.position+1)
+            if (props.playbackState.position % 5 === 0) {
+                props.fetchPosition().then(props.setPosition);
+            } else {
+                props.setPosition(props.playbackState.position+1);
+            }
         }
     }, 1000);
 
@@ -48,6 +53,16 @@ export default function Videos(): React.ReactElement {
             .then(setVideos);
     }, []);
 
+    useEffect(() => {
+        if (playbackState) {
+            fetchPosition()
+                .then(position => setPlaybackState({
+                    ...playbackState,
+                    position
+                }));
+        }
+    }, [length]);
+
     const fetchPosition = (): Promise<number> =>
         fetch('/video/position')
             .then(resp => resp.json())
@@ -62,15 +77,16 @@ export default function Videos(): React.ReactElement {
                 if (result.ok) {
                     setPlaybackState({path: path, paused: false, position: 0});
 
-                    setTimeout(() => fetch('video/length')
-                        .then(resp => resp.json())
-                        .then(json => {
-                            setLength(Math.round(json.length / OneSecondInUS))
-                        }),
+                    setTimeout(
+                        () => fetch('video/length')
+                            .then(resp => resp.json())
+                            .then(json => {
+                                setLength(Math.round(json.length / OneSecondInUS))
+                            }),
                         2000
                     );
                 }
-            })
+            });
         }
     }
 
@@ -173,11 +189,14 @@ export default function Videos(): React.ReactElement {
                             {'>>'}
                         </div>
                     </div>
-                    <Timer 
-                        playbackState={playbackState} 
-                        setPosition={position => setPlaybackState({...playbackState, position})}
-                        length={length}
-                    />
+                    { length &&
+                        <Timer 
+                            playbackState={playbackState} 
+                            setPosition={position => setPlaybackState({...playbackState, position})}
+                            fetchPosition={fetchPosition}
+                            length={length}
+                        />
+                    }
                 </div>
             )}
         </div>
