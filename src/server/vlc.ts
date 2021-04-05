@@ -1,4 +1,4 @@
-const { exec } = require('child_process');
+import { exec } from 'child_process';
 
 const execute = (cmd: string): Promise<any> => new Promise((resolve, reject) =>
     exec(cmd, (err, stdout, stderr) => {
@@ -10,7 +10,6 @@ const execute = (cmd: string): Promise<any> => new Promise((resolve, reject) =>
             console.log(stderr)
             return reject(err);
         }
-        console.log(stdout)
         return resolve(stdout)
     })
 );
@@ -31,7 +30,7 @@ const seek = (us: number) => execute(
 
 const position = () => execute(
     'qdbus org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2 org.freedesktop.DBus.Properties.Get org.mpris.MediaPlayer2.Player Position'
-)
+).then(position => position.replace('\n',''))
 
 const lengthRegex = /^mpris:length: (\d*)$/;
 const length = (): Promise<{length: number}> => execute(

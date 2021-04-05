@@ -1,4 +1,4 @@
-const fs = require('fs');
+import * as fs from 'fs';
 
 const FILE_PATH = './video-history.txt';
 
@@ -10,7 +10,6 @@ const getVideoHistory = (): Promise<string[]> => {
                     return reject(err);
                 }
                 const lines = data.toString().split("\n").map(l => l.trim()).filter(l => l !== '');
-                console.log('history', lines)
                 return resolve(lines);
             });
         } else {

@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
+import * as fs from 'fs';
+import * as path from 'path';
 import { VideoList, Video } from '../shared/models';
 
-export const getVideosList = (p: string, history: string[]): Promise<VideoList> => new Promise((resolve, reject) => {
+export const fetchVideoList = (p: string, history: string[]): Promise<VideoList> => new Promise((resolve, reject) => {
     fs.readdir(p, function(err, list) {
         if (err) {
             reject(err)
@@ -15,10 +15,10 @@ export const getVideosList = (p: string, history: string[]): Promise<VideoList> 
                             fReject(err)
                         } else {
                             if (stat && stat.isDirectory()) {
-                                getVideosList(file, history).then(r => fResolve([f, r]));
+                                fetchVideoList(file, history).then(r => fResolve([f, r]));
                             } else {
                                 const viewed = history.includes(`${p}/${f}`);
-                                fResolve([f, {size: stat.size, created: stat.birthtime, viewed: viewed}]);
+                                fResolve([f, {size: stat.size, created: stat.birthtime.toISOString(), viewed: viewed}]);
                             }
                         }
                     })
