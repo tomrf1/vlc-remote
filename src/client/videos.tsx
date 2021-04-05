@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { VideoList, PlaybackState, VideoRequest, Playing } from '../shared/models';
+import { CloseIcon } from './icons/close-icon';
+import { ExpandIcon } from './icons/expand-icon';
 import useInterval from './useInterval';
 
 const OneSecondInUS = 1000000;
@@ -34,6 +36,29 @@ function Timer(props: TimerProps): React.ReactElement<TimerProps> {
     )
 }
 
+interface CollapsibleDirectoryProps {
+    name: string;
+    children: React.ReactNode;
+}
+function CollapsibleDirectory(props: CollapsibleDirectoryProps): React.ReactElement<CollapsibleDirectoryProps> {
+    const [isExpanded, setIsExpanded] = useState<boolean>(false);
+    return (
+        <>
+            <div 
+                className={`videoDirName ${isExpanded ? 'videoDirName-expanded' : 'videoDirName-closed'}`} 
+                key={props.name}
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
+                {props.name}
+                {isExpanded ? <CloseIcon /> : <ExpandIcon/>}
+            </div>
+            <div className={isExpanded ? '' : 'hidden'}>
+                {props.children}
+            </div>
+        </>
+    )
+}
+
 export default function Videos(): React.ReactElement {
     const [videos, setVideos] = useState<VideoList>({});
     const [playbackState, setPlaybackState] = useState<PlaybackState>(null);
@@ -41,7 +66,7 @@ export default function Videos(): React.ReactElement {
 
     useEffect(() => {
         try {
-            const ws = new WebSocket('ws://localhost:3000/video');
+            const ws = new WebSocket(`ws://${window.location.host}/video`);
             ws.onopen = event => {
                 setWebsocket(ws);
             }
@@ -130,6 +155,7 @@ export default function Videos(): React.ReactElement {
                                     <span>{key}</span>
                                 </div>
                                 <div className="viewed">
+                                    <label htmlFor={fullPath}>Viewed</label>
                                     <input 
                                         type="checkbox" 
                                         defaultChecked={videos[key].viewed === true} 
@@ -138,15 +164,15 @@ export default function Videos(): React.ReactElement {
                                             event.currentTarget.checked === true ? setViewed(fullPath) : unsetViewed(fullPath)
                                         }}
                                     />
-                                    <label htmlFor={fullPath}>Viewed</label>
                                 </div>
                             </div>
                         )
                     } else {
                         return (
                             <>
-                                <div className="videoDirName" key={key}>{key}</div>
-                                {renderVideos(videos[key] as VideoList, fullPath)}
+                                <CollapsibleDirectory name={key}>
+                                    {renderVideos(videos[key] as VideoList, fullPath)}
+                                </CollapsibleDirectory>
                             </>
                         )                 
                     }
@@ -157,7 +183,9 @@ export default function Videos(): React.ReactElement {
 
     return (
         <div>
-            { renderVideos(videos) }
+            <div className="videoListContainer">
+                { renderVideos(videos) }
+            </div>
             { playbackState && (
                 <div className="playbackContainer">
                     {playbackState.path}
