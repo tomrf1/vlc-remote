@@ -15,17 +15,33 @@
     justify-content: end;
 }
 
+.videoListContainer {
+    margin-right: 5px;
+}
+
 .videoDir {
-    margin-left: 20px;
+    margin: 5px 0 5px 5px;
+    font-size: 15px;
 }
 
 .videoDirName {
     font-weight: 700;
     margin-top: 5px;
+    border: 1px solid #e6ede8;
+    padding: 10px;
+    cursor: pointer;
 }
-
-.videoName {
-    background-color: #32a891;
+.videoDirName svg {
+    float: right;
+}
+.videoDirName:hover {
+    background-image: linear-gradient( #76b082 , white);
+}
+.videoDirName-expanded {
+    background-image: linear-gradient( #9bb0a0 , white);
+}
+.videoDirName-closed {
+    background-image: linear-gradient( #e6ede8 , white);
 }
 
 .videoContainer {
@@ -34,16 +50,28 @@
     align-items: center;
 }
 
+.videoName {
+    background-image: linear-gradient( #9ad9c1 , white);
+    border: 1px solid #9ad9c1;
+    width: 75%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.videoName:hover {
+    background-image: linear-gradient( #86cfb3 , white);
+}
+
 .playbackContainer {
     position: sticky;
     border: 1px solid black;
     background-color: white;
     bottom: 5px;
     min-height: 20%;
-    font-size: 25px;
+    font-size: 18px;
     font-weight: 700;
     display: flex;
     flex-direction: column;
+    overflow-wrap: break-word;
 }
 
 .pauseButton {
@@ -63,4 +91,19 @@
     flex: 1;
     background-color: #9dfac9;
     font-weight: 700;
+}
+
+.viewed {
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    align-items: end;
+}
+.viewed label, input {
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
 }
