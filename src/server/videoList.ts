@@ -2,34 +2,31 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { VideoList, Video } from '../shared/models';
 
-export const fetchVideoList = (p: string, history: string[]): Promise<VideoList> => new Promise((resolve, reject) => {
-    fs.readdir(p, function(err, list) {
-        if (err) {
-            reject(err)
-        } else {
-            const fPs: Promise<[string, Video | VideoList]>[] = list.map(f => {
-                return new Promise<[string, Video | VideoList]>((fResolve, fReject) => {
-                    const file = path.resolve(p, f);
-                    fs.stat(file, (err, stat) => {
-                        if (err) {
-                            fReject(err)
-                        } else {
-                            if (stat && stat.isDirectory()) {
-                                fetchVideoList(file, history).then(r => fResolve([f, r]));
-                            } else {
-                                const viewed = history.includes(`${p}/${f}`);
-                                fResolve([f, {size: stat.size, created: stat.birthtime.toISOString(), viewed: viewed}]);
-                            }
-                        }
-                    })
-                });
-            });
-            Promise.all(fPs).then(ps => {
-                resolve(ps.reduce((acc, [k,v]) => {
-                    acc[k] = v;
-                    return acc;
-                }, {}));
+export const fetchVideoList = (p: string, history: string[]): Promise<VideoList> =>
+    fs.promises.readdir(p).then(files => {
+        const videoLists: Promise<VideoList>[] = files.map(fileName => {
+            const filePath = path.resolve(p, fileName);
+            return fs.promises.stat(filePath).then(stat => {
+                if (stat && stat.isDirectory()) {
+                    return fetchVideoList(filePath, history)
+                        .then(videoList => ({[fileName]: videoList}));
+                } else {
+                    const viewed = history.includes(`${p}/${fileName}`);
+                    const video: Video = {
+                        size: stat.size,
+                        created: stat.birthtime.toISOString(),
+                        viewed: viewed
+                    };
+                    return Promise.resolve({[fileName]: video});
+                }
             })
-        }
+        })
+        return Promise.all(videoLists).then(vls => 
+            vls.reduce<VideoList>((acc, vl) => {
+                return {
+                    ...acc,
+                    ...vl
+                }
+            }, {})
+        )
     });
-});

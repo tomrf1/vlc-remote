@@ -85,7 +85,7 @@ export default function Videos(): React.ReactElement {
                         break;
                     case 'NACK':
                         console.log('NACK')
-                        alert('Request failed')
+                        alert(`Request failed: ${data.reason}`)
                         break;
                     default:
                         console.log('unknown event:', data)
@@ -103,7 +103,11 @@ export default function Videos(): React.ReactElement {
             .then(setVideos);
     }, []);
 
-    const wsRequest = (req: VideoRequest): void => websocket.send(JSON.stringify(req));
+    const wsRequest = (req: VideoRequest): void => {
+        if (websocket) {
+            websocket.send(JSON.stringify(req));
+        }
+    }
 
     const playVideo = (path: string) => {
         if (playbackState === null) {

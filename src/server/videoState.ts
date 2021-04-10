@@ -1,18 +1,21 @@
+import { ChildProcess } from 'child_process';
 import { PlaybackState, VideoList } from '../shared/models';
 import { getVideoHistory } from './videoHistory';
 import { fetchVideoList } from './videoList';
 import * as Vlc from './vlc';
 
-const VIDEO_PATH = process.env.VIDEO_PATH;
+const VIDEO_PATH = process.env.VIDEO_PATH || '';
 
 class VideoState {
     playbackState: PlaybackState;
+    vlcProcess: ChildProcess | null;
     videoList: VideoList;
     positionPoller: NodeJS.Timeout | null;
     onUpdate: (playbackState: PlaybackState) => void;
 
     constructor(onUpdate: (playbackState: PlaybackState) => void) {
         this.playbackState = null;
+        this.vlcProcess = null;
         this.videoList = {};
         this.positionPoller = null;
         this.onUpdate = onUpdate;
@@ -29,6 +32,9 @@ class VideoState {
             .then(history => fetchVideoList(VIDEO_PATH, history))
             .then(newList => {
                 this.videoList = newList;
+            })
+            .catch(err => {
+                console.log('Failed to refresh video list', err);
             });
     }
     isValidPath(path: string, videos: VideoList = this.videoList): boolean {
@@ -49,54 +55,99 @@ class VideoState {
         }
     }
     refreshPosition(): void {
-        Vlc.position().then(position => {
-            this.playbackState = {
-                ...this.playbackState,
-                position
-            }
-            this.onUpdate(this.playbackState);
-        })
+        Vlc
+            .position()
+            .then(position => {
+                if (this.playbackState) {
+                    this.playbackState = {
+                        ...this.playbackState,
+                        position: parseInt(position)
+                    }
+                    this.onUpdate(this.playbackState);
+                }
+            })
+            .catch(err => {
+                console.log('Failed to refresh position', err);
+            });
     }
-    start(path: string): void {
+    fetchLength(): void {
+        Vlc
+            .length()
+            .then(length => {
+                if (this.playbackState) {
+                    this.playbackState = {
+                        ...this.playbackState,
+                        length
+                    }
+                    this.onUpdate(this.playbackState);
+                }
+            })
+            .catch(err => {
+                console.log('Failed to fetch length', err);
+            });
+    }
+    start(path: string, process: ChildProcess): void {
+        console.log('starting', path)
         this.playbackState = {
             path,
             paused: false,
             position: 0,
             length: 0
         }
+
+        process.on('exit', code => {
+            console.log(`VLC child process exited with code ${code}`);
+            this.stopped();
+        });
+        process.on('error', err => {
+            console.log(`VLC child process failed with error ${err}`);
+            this.stopped();
+        });
+        this.vlcProcess = process;
+
         this.onUpdate(this.playbackState);
 
-        // Give it a chance to start
+        // Give it a chance to start before fetching time data
         setTimeout(() => {
-            Vlc.length().then(({length}) => {
-                this.playbackState = {
-                    ...this.playbackState,
-                    length
-                }
-                this.onUpdate(this.playbackState);
-            });
+            this.fetchLength();
             this.refreshPosition();
             this.positionPoller = setInterval(this.refreshPosition.bind(this), 5000);
         }, 4000);
     }
     pause() {
-        this.playbackState = {
-            ...this.playbackState,
-            paused: true
+        if (this.playbackState) {
+            this.playbackState = {
+                ...this.playbackState,
+                paused: true
+            }
+            this.onUpdate(this.playbackState);
         }
-        this.onUpdate(this.playbackState);
     }
     resume() {
-        this.playbackState = {
-            ...this.playbackState,
-            paused: false
+        if (this.playbackState) {
+            this.playbackState = {
+                ...this.playbackState,
+                paused: false
+            }
+            this.onUpdate(this.playbackState);
         }
+    }
+    stopped() {
+        this.vlcProcess = null;
+        if (this.positionPoller) {
+            clearInterval(this.positionPoller);
+        }
+        this.playbackState = null;
         this.onUpdate(this.playbackState);
     }
     stop() {
-        clearInterval(this.positionPoller);
-        this.playbackState = null;
-        this.onUpdate(this.playbackState);
+        if (this.vlcProcess) {
+            console.log('Killing vlc process...')
+            this.vlcProcess.kill('SIGTERM')
+        } else {
+            // This shouldn't happen...
+            this.stopped();
+        }
     }
 }
 
