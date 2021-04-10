@@ -6,6 +6,7 @@ import * as Vlc from './vlc';
 import * as  express from 'express';
 import * as  expressWs from 'express-ws';
 import * as cors from 'cors';
+import * as WebSocket from 'ws';
 
 const port = 3000;
 const app = express()
@@ -21,74 +22,58 @@ const videoState = new VideoState(notify);
 videoState.refreshVideoList();
 setInterval(() => videoState.refreshVideoList(), 60000);
 
-expressWs(app);
+const wsApp = expressWs(app).app;
 
-app.use(cors());
-app.options('*', cors());
+wsApp.use(cors());
+// @ts-ignore
+wsApp.options('*', cors());
 
-app.use(express.static('dist/client'))
+wsApp.use(express.static('dist/client'))
 
-const processRequest = (wsReq: VideoRequest, ws: WebSocket) => {
-  const ack = () => ws.send(JSON.stringify({type: 'ACK'}));
-  const nack = () => ws.send(JSON.stringify({type: 'NACK'}));
-
+const processRequest = (wsReq: VideoRequest, ws: WebSocket): Promise<void> => {
   switch(wsReq.type) {
     case 'START':
       if (videoState.isValidPath(wsReq.path)) {
         const escapedPath = wsReq.path.replace(/(\s+)/g, '\\$1')
-        Vlc.start(`${VIDEO_PATH}/${escapedPath}`);  // TODO - store the child process ref?
-        videoState.start(wsReq.path);
-        ack();
+        return Vlc.start(`${VIDEO_PATH}/${escapedPath}`)
+          .then(process => videoState.start(wsReq.path, process));
       } else {
-        console.log('Invalid video path', wsReq.path)
-        nack()
+        return Promise.reject(`Invalid video path: ${wsReq.path}`);
       }
-      break;
     case 'PAUSE':
-      Vlc.pause()
-        .then(() => {
-          videoState.pause();
-          ack();
-        });
-      break;
+      return Vlc.pause().then(() => videoState.pause())
     case 'STOP':
-      Vlc.stop()
-        .then(() => {
-          videoState.stop();
-          ack();
-        });
-      break;
+      return Promise.resolve(videoState.stop());
     case 'RESUME':
-      Vlc.resume()
-        .then(() => {
-          videoState.resume();
-          ack();
-        });
-      break;
+      return Vlc.resume().then(() => videoState.resume());
     case 'SEEK':
-      Vlc.seek(wsReq.us)
-        .then(() => {
-          videoState.refreshPosition();
-          ack();
-        })
-      break;
+      return Vlc.seek(wsReq.us).then(() => videoState.refreshPosition());
     default:
-      ws.send('UNKNOWN')
-      nack();
+      return Promise.reject('unknown message type');
   }
 }
 
-app.ws('/video', (ws, req) => {
+wsApp.ws('/video', (ws, req) => {
   const id = clients.addClient(ws);
-  ws.on('open', () => {
-    ws.send(JSON.stringify({
-      type: 'PLAYBACK',
-      playbackState: videoState.playbackState
-    }))
-  });
-  ws.on('message', msg => {
+  console.log('new client', id)
+  
+  ws.send(JSON.stringify({
+    type: 'PLAYBACK',
+    playbackState: videoState.playbackState
+  }));
+
+  ws.on('message', (msg: string) => {
     const wsReq = JSON.parse(msg) as VideoRequest;
-    processRequest(wsReq, ws);
+    processRequest(wsReq, ws)
+      .then(() => ws.send(JSON.stringify({type: 'ACK'})))
+      .catch(err => {
+        console.log(err);
+        ws.send(JSON.stringify({
+          type: 'NACK',
+          reason: err
+        }))
+      }
+    );
   });
   ws.on('close', () => {
     console.log('removing client', id)
@@ -97,23 +82,25 @@ app.ws('/video', (ws, req) => {
 });
 
 
-app.get('/videos', (req, res) => {
+wsApp.get('/videos', (req, res) => {
   res.send(videoState.getVideoList());
 })
 
-app.post(/^\/videos\/viewed\/(.+)/, (req, res) => {
+wsApp.post(/^\/videos\/viewed\/(.+)/, (req, res) => {
   const path = req.params[0];
   updateVideoHistory(`${VIDEO_PATH}/${path}`, true)
     .then(() => videoState.refreshVideoList())
-    .then(() => res.send('ok'));
+    .then(() => res.send('ok'))
+    .catch(err => res.status(500).send(`${err}`));
 })
-app.delete(/^\/videos\/viewed\/(.+)/, (req, res) => {
-  const path = req.params[0];
+wsApp.delete(/^\/videos\/viewed\/(.+)/, (req, res) => {
+  const path = req.params[0]; 
   updateVideoHistory(`${VIDEO_PATH}/${path}`, false)
     .then(() => videoState.refreshVideoList())
-    .then(() => res.send('ok'));
+    .then(() => res.send('ok'))
+    .catch(err => res.status(500).send(`${err}`));
 })
 
-app.listen(port, () => {
+wsApp.listen(port, () => {
   console.log(`Running on http://localhost:${port}`)
 })

@@ -1,54 +1,53 @@
-import { exec } from 'child_process';
+import { exec, spawn, ChildProcess } from 'child_process';
 
-const execute = (cmd: string): Promise<any> => new Promise((resolve, reject) =>
+// Resolves only when the child process ends
+const executeToCompletion = (cmd: string): Promise<string> => new Promise((resolve, reject) =>
     exec(cmd, (err, stdout, stderr) => {
         if (err) {
-            console.log(err)
-            return reject(err);
+            reject(`${err}`);
         }
         if (stderr) {
-            console.log(stderr)
-            return reject(err);
+            reject(`${err}`);
         }
-        return resolve(stdout)
+        resolve(stdout);
     })
 );
 
-const start = (path: string) => execute(`vlc --fullscreen ${path}`);
+const start = (path: string) => Promise.resolve(spawn('vlc', ['--fullscreen', path]));
 
-const pause = () => execute('dbus-send --type=method_call --dest=org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2   org.mpris.MediaPlayer2.Player.PlayPause');
+const pause = () => executeToCompletion('dbus-send --type=method_call --dest=org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2   org.mpris.MediaPlayer2.Player.PlayPause');
 
-const resume = () => execute(
+const resume = () => executeToCompletion(
     'dbus-send --type=method_call --dest=org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2   org.mpris.MediaPlayer2.Player.Play'
 );
 
-const stop = () => execute('killall vlc');
-
-const seek = (us: number) => execute(
+const seek = (us: number) => executeToCompletion(
     `dbus-send --type=method_call --dest=org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2   org.mpris.MediaPlayer2.Player.Seek int64:"${us}"`
 )
 
-const position = () => execute(
+const position = () => executeToCompletion(
     'qdbus org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2 org.freedesktop.DBus.Properties.Get org.mpris.MediaPlayer2.Player Position'
 ).then(position => position.replace('\n',''))
 
 const lengthRegex = /^mpris:length: (\d*)$/;
-const length = (): Promise<{length: number}> => execute(
+const length = (): Promise<number> => executeToCompletion(
     'qdbus org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2 org.freedesktop.DBus.Properties.Get org.mpris.MediaPlayer2.Player Metadata'
 ).then(metadata => {
-    const token = metadata.split('\n').find(token => token.includes('mpris:length'));
+    const token = metadata
+        .split('\n')
+        .find(token => token.includes('mpris:length'));
+
     if (token) {
         const matches = token.match(lengthRegex);
-        if (matches[1]) {
-            return Promise.resolve({length: matches[1] as number});
+        if (matches && matches[1]) {
+            const length = parseInt(matches[1]);
+            return Promise.resolve(length);
         } else {
-            console.log('Cannot parse token', token)
-            return Promise.reject('Not found')
+            return Promise.reject(`Cannot parse token: ${token}`);
         }
     } else {
-        console.log('No length found in metadata:', metadata)
-        return Promise.reject('Not found');
+        return Promise.reject(`No length found in metadata: ${metadata}`);
     }
 })
 
-export { start, pause, resume, stop, seek, position, length }
+export { start, pause, resume, seek, position, length }
