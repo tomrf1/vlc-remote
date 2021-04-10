@@ -1,8 +1,11 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { VideoList, PlaybackState, VideoRequest, Playing } from '../shared/models';
-import { CloseIcon } from './icons/close-icon';
-import { ExpandIcon } from './icons/expand-icon';
+import { CloseIcon } from './icons/closeIcon';
+import { ExpandIcon } from './icons/expandIcon';
+import { PauseIcon } from './icons/pauseIcon';
+import { PlayIcon } from './icons/playIcon';
+import { StopIcon } from './icons/stopIcon';
 import useInterval from './useInterval';
 
 const OneSecondInUS = 1000000;
@@ -182,24 +185,26 @@ export default function Videos(): React.ReactElement {
     );
 
     return (
-        <div>
+        <div className="videoPageContainer">
             <div className="videoListContainer">
                 { renderVideos(videos) }
             </div>
             { playbackState && (
                 <div className="playbackContainer">
-                    {playbackState.path}
+                    <div className="title">
+                        {playbackState.path}
+                    </div>
                     <div
                         className="pauseButton button"
                         onClick={() => togglePause(playbackState.paused)}
                     >
-                        {playbackState.paused ? 'Resume' : 'Pause'}
+                        {playbackState.paused ? <PlayIcon/> : <PauseIcon /> }
                     </div>
                     <div
                         className="stopButton button"
                         onClick={stop}
                     >
-                        Stop
+                        <StopIcon />
                     </div>
                     <div className="seekContainer">
                         <div

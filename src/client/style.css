@@ -6,6 +6,7 @@
     margin: 5px;
     cursor: pointer;
     text-align: center;
+    box-shadow: 2px 2px 2px #888;
 }
 
 .top {
@@ -13,6 +14,12 @@
     border-bottom: 1px solid black;
     display: flex;
     justify-content: end;
+}
+
+.videoPageContainer {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .videoListContainer {
@@ -62,10 +69,13 @@
 }
 
 .playbackContainer {
-    position: sticky;
-    border: 1px solid black;
-    background-color: white;
+    position: fixed;
+    top: auto;
+    border-top: 1px solid black;
+    background-color: #f7f4e6;
     bottom: 5px;
+    left: 0;
+    width: 100%;
     min-height: 20%;
     font-size: 18px;
     font-weight: 700;
@@ -74,12 +84,24 @@
     overflow-wrap: break-word;
 }
 
+.title {
+    text-align: center;
+}
+
 .pauseButton {
-    background-color: #65a832;
+    background-color: #8aeda2;
+    padding: 5px 5px 0 5px;
+}
+.pauseButton svg {
+    width: 30px;
 }
 
 .stopButton {
-    background-color: #a85d32;
+    background-color: #faa7b5;
+    padding: 5px 5px 0 5px;
+}
+.stopButton svg {
+    width: 30px;
 }
 
 .seekContainer {
