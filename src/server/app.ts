@@ -30,14 +30,14 @@ wsApp.options('*', cors());
 
 wsApp.use(express.static('dist/client'))
 
-const processRequest = (wsReq: VideoRequest, ws: WebSocket): Promise<void> => {
-  switch(wsReq.type) {
+const processRequest = (request: VideoRequest): Promise<void> => {
+  switch(request.type) {
     case 'START':
-      if (videoState.isValidPath(wsReq.path)) {
-        return Vlc.start(`${VIDEO_PATH}/${wsReq.path}`)
-          .then(process => videoState.start(wsReq.path, process));
+      if (videoState.isValidPath(request.path)) {
+        return Vlc.start(`${VIDEO_PATH}/${request.path}`)
+          .then(process => videoState.start(request.path, process));
       } else {
-        return Promise.reject(`Invalid video path: ${wsReq.path}`);
+        return Promise.reject(`Invalid video path: ${request.path}`);
       }
     case 'PAUSE':
       return Vlc.pause().then(() => videoState.pause())
@@ -46,7 +46,7 @@ const processRequest = (wsReq: VideoRequest, ws: WebSocket): Promise<void> => {
     case 'RESUME':
       return Vlc.resume().then(() => videoState.resume());
     case 'SEEK':
-      return Vlc.seek(wsReq.us).then(() => videoState.refreshPosition());
+      return Vlc.seek(request.us).then(() => videoState.refreshPosition());
     default:
       return Promise.reject('unknown message type');
   }
@@ -63,7 +63,7 @@ wsApp.ws('/video', (ws, req) => {
 
   ws.on('message', (msg: string) => {
     const wsReq = JSON.parse(msg) as VideoRequest;
-    processRequest(wsReq, ws)
+    processRequest(wsReq)
       .then(() => ws.send(JSON.stringify({type: 'ACK'})))
       .catch(err => {
         console.log(err);
