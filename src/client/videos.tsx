@@ -68,34 +68,40 @@ export default function Videos(): React.ReactElement {
     const [websocket, setWebsocket] = useState<WebSocket | null>(null);
 
     useEffect(() => {
-        try {
-            const ws = new WebSocket(`ws://${window.location.host}/video`);
-            ws.onopen = event => {
-                setWebsocket(ws);
-            }
-            ws.onmessage = event => {
-                const data = JSON.parse(event.data);
-                switch(data.type) {
-                    case 'PLAYBACK':
-                        console.log('PLAYBACK update', data)
-                        setPlaybackState(data.playbackState);
-                        break;
-                    case 'ACK':
-                        console.log('ACK')
-                        break;
-                    case 'NACK':
-                        console.log('NACK')
-                        alert(`Request failed: ${data.reason}`)
-                        break;
-                    default:
-                        console.log('unknown event:', data)
+        if (websocket === null) {
+            console.log('creating websocket connection')
+            try {
+                const ws = new WebSocket(`ws://${window.location.host}/video`);
+                ws.onopen = event => {
+                    setWebsocket(ws);
                 }
-            };
-        } catch (err) {
-            console.log(err)
-            alert('websocket failed')
+                ws.onclose = event => {
+                    setWebsocket(null);
+                }
+                ws.onmessage = event => {
+                    const data = JSON.parse(event.data);
+                    switch(data.type) {
+                        case 'PLAYBACK':
+                            console.log('PLAYBACK update', data)
+                            setPlaybackState(data.playbackState);
+                            break;
+                        case 'ACK':
+                            console.log('ACK')
+                            break;
+                        case 'NACK':
+                            console.log('NACK')
+                            alert(`Request failed: ${data.reason}`)
+                            break;
+                        default:
+                            console.log('unknown event:', data)
+                    }
+                };
+            } catch (err) {
+                console.log(err)
+                alert('websocket failed')
+            }
         }
-    }, []);
+    }, [websocket]);
 
     useEffect(() => {
         fetch('/videos')
