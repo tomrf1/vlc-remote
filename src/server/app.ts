@@ -34,8 +34,7 @@ const processRequest = (wsReq: VideoRequest, ws: WebSocket): Promise<void> => {
   switch(wsReq.type) {
     case 'START':
       if (videoState.isValidPath(wsReq.path)) {
-        const escapedPath = wsReq.path.replace(/(\s+)/g, '\\$1')
-        return Vlc.start(`${VIDEO_PATH}/${escapedPath}`)
+        return Vlc.start(`${VIDEO_PATH}/${wsReq.path}`)
           .then(process => videoState.start(wsReq.path, process));
       } else {
         return Promise.reject(`Invalid video path: ${wsReq.path}`);
