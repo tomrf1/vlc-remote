@@ -47,6 +47,8 @@ const processRequest = (request: VideoRequest): Promise<void> => {
       return Vlc.resume().then(() => videoState.resume());
     case 'SEEK':
       return Vlc.seek(request.us).then(() => videoState.refreshPosition());
+    case 'PING':
+      return Promise.resolve();
     default:
       return Promise.reject('unknown message type');
   }
