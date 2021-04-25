@@ -78,6 +78,10 @@ export default function Videos(): React.ReactElement {
                 ws.onclose = event => {
                     setWebsocket(null);
                 }
+                ws.onerror = event => {
+                    console.log('websocket error', event);
+                    setWebsocket(null);
+                }
                 ws.onmessage = event => {
                     const data = JSON.parse(event.data);
                     switch(data.type) {
