@@ -34,10 +34,14 @@ interface VideoSeekRequest {
     type: 'SEEK',
     us: number
 }
+interface VideoPingRequest {
+    type: 'PING'
+}
 
 export type VideoRequest = 
     VideoStartRequest |
     VideoPauseRequest |
     VideoStopRequest |
     VideoSeekRequest |
-    VideoResumeRequest;
+    VideoResumeRequest |
+    VideoPingRequest;

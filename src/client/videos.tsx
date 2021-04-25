@@ -66,23 +66,20 @@ export default function Videos(): React.ReactElement {
     const [videos, setVideos] = useState<VideoList>({});
     const [playbackState, setPlaybackState] = useState<PlaybackState>(null);
     const [websocket, setWebsocket] = useState<WebSocket | null>(null);
+    const [lastMessageTimestamp, setLastMessageTimestamp] = useState<number>(Date.now());
 
     useEffect(() => {
         if (websocket === null) {
             console.log('creating websocket connection')
             try {
                 const ws = new WebSocket(`ws://${window.location.host}/video`);
+                setLastMessageTimestamp(Date.now());
                 ws.onopen = event => {
                     setWebsocket(ws);
-                }
-                ws.onclose = event => {
-                    setWebsocket(null);
-                }
-                ws.onerror = event => {
-                    console.log('websocket error', event);
-                    setWebsocket(null);
+                    setLastMessageTimestamp(Date.now());
                 }
                 ws.onmessage = event => {
+                    setLastMessageTimestamp(Date.now());
                     const data = JSON.parse(event.data);
                     switch(data.type) {
                         case 'PLAYBACK':
@@ -106,6 +103,17 @@ export default function Videos(): React.ReactElement {
             }
         }
     }, [websocket]);
+
+    useInterval(() => {
+        if (websocket) {
+            if (websocket.readyState === 3 || lastMessageTimestamp < (Date.now() - 8000)) {
+                console.log('heartbeat failed');
+                setWebsocket(null);
+            } else {
+                websocket.send(JSON.stringify({type: 'PING'}));
+            }
+        }
+    }, 4000);
 
     useEffect(() => {
         fetch('/videos')
