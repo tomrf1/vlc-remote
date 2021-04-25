@@ -6,7 +6,6 @@ import * as Vlc from './vlc';
 import * as  express from 'express';
 import * as  expressWs from 'express-ws';
 import * as cors from 'cors';
-import * as WebSocket from 'ws';
 
 const port = 3000;
 const app = express()
@@ -46,7 +45,11 @@ const processRequest = (request: VideoRequest): Promise<void> => {
     case 'RESUME':
       return Vlc.resume().then(() => videoState.resume());
     case 'SEEK':
-      return Vlc.seek(request.us).then(() => videoState.refreshPosition());
+      if (!isNaN(Number(request.us))) {
+        return Vlc.seek(request.us).then(() => videoState.refreshPosition());
+      } else {
+        return Promise.reject('NaN')
+      }
     case 'PING':
       return Promise.resolve();
     default:
