@@ -1,11 +1,11 @@
 [Unit]
-Description=remote pi
+Description=vlc remote
 After=network.target
 
 [Service]
 ExecStart=npm run app
-WorkingDirectory=/home/pi/src/remote-pi
-Environment="VIDEO_PATH=/home/pi/shared"
+WorkingDirectory=/home/pi/src/vlc-remote
+Environment="VIDEO_PATH=/home/pi/Videos"
 Environment="DISPLAY=:0"
 StandardOutput=inherit
 StandardError=inherit
@@ -14,4 +14,3 @@ User=pi
 
 [Install]
 WantedBy=multi-user.target
-

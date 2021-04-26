@@ -1,6 +1,6 @@
 {
-  "name": "static-react",
-  "version": "1.0.0",
+  "name": "vlc-remote",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "watch": "webpack --watch",
     "app": "node dist/server/bundle.js"
   },
-  "author": "",
+  "author": "tomrf1",
   "license": "ISC",
   "dependencies": {
     "@babel/preset-env": "^7.12.11",
