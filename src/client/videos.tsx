@@ -164,12 +164,14 @@ export default function Videos(): React.ReactElement {
             .then(r => console.log(r))
     }
 
-    const renderVideos = (videos: VideoList, path: string | null = null) => (
-        <div className="videoDir">
-            {
-                Object.keys(videos).map(key => {
-                    const fullPath = `${path ? `${path}/` : ''}${key}`;
-                    if (videos[key].size) {
+    const renderVideos = (videos: VideoList, path: string | null = null) => {
+        const dirs = Object.entries(videos).filter(([key, item]) => !item.size);
+        const files = Object.entries(videos).filter(([key, item]) => !!item.size);
+        return (
+            <div className="videoDir">
+                {
+                    files.map(([key, file]) => {
+                        const fullPath = `${path ? `${path}/` : ''}${key}`;
                         return (
                             <div className="videoContainer">
                                 <div 
@@ -180,10 +182,9 @@ export default function Videos(): React.ReactElement {
                                     <span>{key}</span>
                                 </div>
                                 <div className="viewed">
-                                    <label htmlFor={fullPath}>Viewed</label>
                                     <input 
                                         type="checkbox" 
-                                        defaultChecked={videos[key].viewed === true} 
+                                        defaultChecked={file.viewed === true} 
                                         id={fullPath}
                                         onClick={(event: React.MouseEvent<HTMLInputElement, MouseEvent>): void => {
                                             event.currentTarget.checked === true ? setViewed(fullPath) : unsetViewed(fullPath)
@@ -192,19 +193,23 @@ export default function Videos(): React.ReactElement {
                                 </div>
                             </div>
                         )
-                    } else {
+                    })
+                }
+                {
+                    dirs.map(([key, dir]) => {
+                        const fullPath = `${path ? `${path}/` : ''}${key}`;
                         return (
                             <>
                                 <CollapsibleDirectory name={key}>
-                                    {renderVideos(videos[key] as VideoList, fullPath)}
+                                    {renderVideos(dir as VideoList, fullPath)}
                                 </CollapsibleDirectory>
                             </>
-                        )                 
-                    }
-                })
-            }
-        </div>
-    );
+                        )  
+                    })
+                }
+            </div>
+        );
+    }
 
     return (
         <div className="videoPageContainer">
