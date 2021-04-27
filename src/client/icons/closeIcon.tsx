@@ -6,6 +6,6 @@ export const CloseIcon = () => (
     <title>
       close
     </title>
-    <path transform="scale(1, -1) translate(0, -18)" d="M19 6.25l-1.5-1.5-7.5 7.5-7.5-7.5L1 6.25l9 9 9-9z"/>
+    <path fill="#e0ddd7" transform="scale(1, -1) translate(0, -18)" d="M19 6.25l-1.5-1.5-7.5 7.5-7.5-7.5L1 6.25l9 9 9-9z"/>
   </svg>
 );

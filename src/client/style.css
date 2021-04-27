@@ -1,25 +1,18 @@
 .button {
-    border: 1px solid black;
     border-radius: 25px;
     padding: 8px;
     display: inline-block;
     margin: 5px;
     cursor: pointer;
     text-align: center;
-    box-shadow: 2px 2px 2px #888;
-}
-
-.top {
-    margin-bottom: 10px;
-    border-bottom: 1px solid black;
-    display: flex;
-    justify-content: end;
 }
 
 .videoPageContainer {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background-color: #2e2d2b;
+    color: #e0ddd7;
 }
 
 .videoListContainer {
@@ -34,21 +27,19 @@
 .videoDirName {
     font-weight: 700;
     margin-top: 5px;
-    border: 1px solid #e6ede8;
+    border: 1px solid #e0ddd7;
     padding: 10px;
     cursor: pointer;
+    border-radius: 6px;
 }
 .videoDirName svg {
     float: right;
 }
-.videoDirName:hover {
-    background-image: linear-gradient( #76b082 , white);
+.videoDirName:active {
+    background-image: linear-gradient( #2e2d2b , #63625e)
 }
 .videoDirName-expanded {
-    background-image: linear-gradient( #9bb0a0 , white);
-}
-.videoDirName-closed {
-    background-image: linear-gradient( #e6ede8 , white);
+    background-color: #474642;
 }
 
 .videoContainer {
@@ -58,21 +49,23 @@
 }
 
 .videoName {
-    background-image: linear-gradient( #9ad9c1 , white);
-    border: 1px solid #9ad9c1;
+    color: #2e2d2b;
+    background-color: #83ccd6;
     width: 75%;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .videoName:hover {
-    background-image: linear-gradient( #86cfb3 , white);
+    background-image: linear-gradient( #83ccd6 , white);
 }
 
 .playbackContainer {
     position: fixed;
     top: auto;
-    border-top: 1px solid black;
-    background-color: #f7f4e6;
+    border-top: 1px solid #e0ddd7;
+    box-shadow: 0px -8px 20px #e0ddd7;
+    padding-top: 4px;
+    background-color: #2e2d2b;
     bottom: 5px;
     left: 0;
     width: 100%;
@@ -89,7 +82,6 @@
 }
 
 .pauseButton {
-    background-color: #8aeda2;
     padding: 5px 5px 0 5px;
 }
 .pauseButton svg {
@@ -97,7 +89,6 @@
 }
 
 .stopButton {
-    background-color: #faa7b5;
     padding: 5px 5px 0 5px;
 }
 .stopButton svg {
@@ -111,8 +102,17 @@
 
 .seekButton {
     flex: 1;
-    background-color: #9dfac9;
     font-weight: 700;
+}
+
+.pauseButton, .stopButton, .seekButton {
+    border: 1px solid #e0ddd7;
+    background-image: linear-gradient( #2e2d2b , #63625e);
+}
+
+.pauseButton:active, .stopButton:active, .seekButton:active {
+    background-color: #63625e;
+    background-image: none;
 }
 
 .viewed {
