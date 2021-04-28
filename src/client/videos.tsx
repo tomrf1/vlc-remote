@@ -222,7 +222,7 @@ export default function Videos(): React.ReactElement {
                         {playbackState.path}
                     </div>
                     <div
-                        className="pauseButton button"
+                        className={`pauseButton button ${playbackState.paused ? '' : 'glow'}`}
                         onClick={() => togglePause(playbackState.paused)}
                     >
                         {playbackState.paused ? <PlayIcon/> : <PauseIcon /> }
