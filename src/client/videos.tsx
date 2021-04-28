@@ -10,6 +10,8 @@ import useInterval from './useInterval';
 
 const OneSecondInUS = 1000000;
 
+const removeExtension = (f: string) => f.substr(0, f.lastIndexOf('.'));
+
 const minsAndSecs = (s: number): string => {
     const mins = `${Math.floor(s/60)}`;
     const seconds = `${s%60}`.padStart(2, '0');
@@ -179,7 +181,7 @@ export default function Videos(): React.ReactElement {
                                     key={key}
                                     onClick={() => playVideo(fullPath)}
                                 >
-                                    <span>{key}</span>
+                                    <span>{removeExtension(key)}</span>
                                 </div>
                                 <div className="viewed">
                                     <input 
@@ -219,7 +221,7 @@ export default function Videos(): React.ReactElement {
             { playbackState && (
                 <div className="playbackContainer">
                     <div className="title">
-                        {playbackState.path}
+                        {removeExtension(playbackState.path.split('/').pop() as string)}
                     </div>
                     <div
                         className={`pauseButton button ${playbackState.paused ? '' : 'glow'}`}
