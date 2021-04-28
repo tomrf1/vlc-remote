@@ -6,6 +6,8 @@ There are alternatives that make use of VLC's network interfaces (see e.g. https
 
 Node.js/typescript/react/websockets. Uses dbus for VLC commands.
 
+![Screenshot](images/screenshot.png)
+
 #### Setup to make it run on startup:
 ```
 sudo apt-get install qdbus
