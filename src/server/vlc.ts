@@ -15,24 +15,23 @@ const executeToCompletion = (cmd: string): Promise<string> => new Promise((resol
 
 const start = (path: string) => Promise.resolve(spawn('vlc', ['--fullscreen', path]));
 
-const pause = () => executeToCompletion('dbus-send --type=method_call --dest=org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2   org.mpris.MediaPlayer2.Player.PlayPause');
+const dbusSend = "dbus-send --type=method_call --dest=org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2";
 
-const resume = () => executeToCompletion(
-    'dbus-send --type=method_call --dest=org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2   org.mpris.MediaPlayer2.Player.Play'
-);
+const pause = () => executeToCompletion(`${dbusSend} org.mpris.MediaPlayer2.Player.PlayPause`);
+
+const resume = () => executeToCompletion(`${dbusSend} org.mpris.MediaPlayer2.Player.Play`);
 
 const seek = (us: number) => executeToCompletion(
-    `dbus-send --type=method_call --dest=org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2   org.mpris.MediaPlayer2.Player.Seek int64:"${us}"`
+    `${dbusSend} org.mpris.MediaPlayer2.Player.Seek int64:"${us}"`
 )
 
-const position = () => executeToCompletion(
-    'qdbus org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2 org.freedesktop.DBus.Properties.Get org.mpris.MediaPlayer2.Player Position'
-).then(position => position.replace('\n',''))
+const qdbusGet = 'qdbus org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2 org.freedesktop.DBus.Properties.Get org.mpris.MediaPlayer2.Player';
+
+const position = () => executeToCompletion(`${qdbusGet} Position`)
+    .then(position => position.replace('\n',''))
 
 const lengthRegex = /^mpris:length: (\d*)$/;
-const length = (): Promise<number> => executeToCompletion(
-    'qdbus org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2 org.freedesktop.DBus.Properties.Get org.mpris.MediaPlayer2.Player Metadata'
-).then(metadata => {
+const length = (): Promise<number> => executeToCompletion(`${qdbusGet} Metadata`).then(metadata => {
     const token = metadata
         .split('\n')
         .find(token => token.includes('mpris:length'));
