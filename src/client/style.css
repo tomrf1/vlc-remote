@@ -15,50 +15,6 @@
     color: #e0ddd7;
 }
 
-.videoListContainer {
-    margin-right: 5px;
-}
-
-.videoDir {
-    margin: 5px 0 5px 5px;
-    font-size: 15px;
-}
-
-.videoDirName {
-    font-weight: 700;
-    margin-top: 5px;
-    border: 1px solid #e0ddd7;
-    padding: 10px;
-    cursor: pointer;
-    border-radius: 6px;
-}
-.videoDirName svg {
-    float: right;
-}
-.videoDirName:active {
-    background-image: linear-gradient( #2e2d2b , #63625e)
-}
-.videoDirName-expanded {
-    background-color: #474642;
-}
-
-.videoContainer {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
-.videoName {
-    color: #2e2d2b;
-    background-color: #83ccd6;
-    width: 75%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.videoName:hover {
-    background-image: linear-gradient( #83ccd6 , white);
-}
-
 .playbackContainer {
     position: fixed;
     top: auto;
@@ -66,7 +22,7 @@
     box-shadow: 0px -8px 20px #e0ddd7;
     padding-top: 4px;
     background-color: #2e2d2b;
-    bottom: 5px;
+    bottom: 0;
     left: 0;
     width: 100%;
     min-height: 20%;
@@ -119,17 +75,60 @@
     background-image: none;
 }
 
-.viewed {
+.directory_container {
+    margin: 5px;
+}
+.directory_header {
+    display: flex;
+    flex-direction: row;
+    background-image: linear-gradient( #63625e, #2e2d2b);
+    padding: 8px 5px 3px 2px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.directory_name {
+    font-size: 20px;
+    font-weight: 700;
+}
+.directory_backButton {
+    width: 25px;
+    margin-right: 10px;
+}
+.disabled {
+    opacity: 50%;
+}
+.directory_dir {
+    margin: 5px;
+    font-weight: 700;
+    margin-top: 5px;
+    border: 1px solid #e0ddd7;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    background-color: #474642;
+}
+.directory_videoContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.directory_videoName {
+    color: #2e2d2b;
+    background-color: #83ccd6;
+    width: 80%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.directory_viewed {
     font-size: 12px;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     align-items: end;
 }
-.viewed label, input {
+.directory_viewed label, input {
     cursor: pointer;
 }
-
-.hidden {
-    display: none;
+.directory_body {
+    margin-top: 8px;
 }

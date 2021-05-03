@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from "react-dom";
 import './style.css';
-import Videos from './videos';
+import Videos from './Videos';
 
 const container = document.getElementById('root');
 
