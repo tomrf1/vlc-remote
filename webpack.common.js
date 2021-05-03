@@ -1,12 +1,9 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-module.exports = [
-  //client
+const client =
   {
-    mode: 'development',
     entry: './src/client/index.ts',
-    devtool: 'inline-source-map',
     plugins: [
       new HtmlWebpackPlugin({
         template: path.resolve(__dirname, "public/index.html"),
@@ -33,10 +30,9 @@ module.exports = [
     resolve: {
       extensions: ['.ts', '.tsx', '.js', '.jsx']
     }
-  },
-  //server
+  };
+const server = 
   {
-    mode: 'development',
     entry: './src/server/app.ts',
     target: 'node',
     output: {
@@ -55,5 +51,10 @@ module.exports = [
     resolve: {
       extensions: ['.ts', '.tsx', '.js', '.jsx']
     }
+  };
+
+  module.exports = {
+    client: client,
+    server: server,
   }
-];
+  

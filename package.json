@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "webpack",
-    "watch": "webpack --watch",
+    "build": "webpack --config webpack.prod.js",
+    "build-dev": "webpack --config webpack.dev.js",
+    "watch": "webpack --config webpack.dev.js --watch",
     "app": "node dist/server/bundle.js"
   },
   "author": "tomrf1",
@@ -35,6 +36,7 @@
     "ts-loader": "^8.0.14",
     "typescript": "^4.1.3",
     "webpack": "^5.12.2",
-    "webpack-cli": "^4.3.1"
+    "webpack-cli": "^4.3.1",
+    "webpack-merge": "^5.7.3"
   }
 }
