@@ -7,14 +7,12 @@ export interface VideoList {
     [k: string]: Video | VideoList;
 }
 
-export interface Playing {
+export interface PlaybackState {
     path: string;
     paused: boolean;
     position: number;
     length: number;
 }
-export type PlaybackState = null | Playing;
-
 
 
 interface VideoStartRequest {

@@ -3,25 +3,26 @@ import { PlaybackState, VideoList } from '../shared/models';
 import { getVideoHistory } from './videoHistory';
 import { fetchVideoList } from './videoList';
 import * as Vlc from './vlc';
+import * as O from '../shared/option';
 
 const VIDEO_PATH = process.env.VIDEO_PATH || '';
 
 class VideoState {
-    playbackState: PlaybackState;
-    vlcProcess: ChildProcess | null;
+    playbackState: O.Option<PlaybackState>;
+    vlcProcess: O.Option<ChildProcess>;
     videoList: VideoList;
-    positionPoller: NodeJS.Timeout | null;
-    onUpdate: (playbackState: PlaybackState) => void;
+    positionPoller: O.Option<NodeJS.Timeout>;
+    onUpdate: (playbackState: O.Option<PlaybackState>) => void;
 
-    constructor(onUpdate: (playbackState: PlaybackState) => void) {
-        this.playbackState = null;
-        this.vlcProcess = null;
+    constructor(onUpdate: (playbackState: O.Option<PlaybackState>) => void) {
+        this.playbackState = O.none;
+        this.vlcProcess = O.none;
         this.videoList = {};
-        this.positionPoller = null;
+        this.positionPoller = O.none;
         this.onUpdate = onUpdate;
     }
 
-    getPlaybackState(): PlaybackState {
+    getPlaybackState(): O.Option<PlaybackState> {
         return this.playbackState;
     }
     getVideoList(): VideoList {
@@ -58,13 +59,13 @@ class VideoState {
         Vlc
             .position()
             .then(position => {
-                if (this.playbackState) {
-                    this.playbackState = {
-                        ...this.playbackState,
+                O.map(this.playbackState)(state => {
+                    this.playbackState = O.some({
+                        ...state,
                         position: parseInt(position)
-                    }
+                    });
                     this.onUpdate(this.playbackState);
-                }
+                });
             })
             .catch(err => {
                 console.log('Failed to refresh position', err);
@@ -74,32 +75,32 @@ class VideoState {
         Vlc
             .length()
             .then(length => {
-                if (this.playbackState) {
+                O.map(this.playbackState)(state => {
                     console.log('Got length', length);
-                    this.playbackState = {
-                        ...this.playbackState,
+                    this.playbackState = O.some({
+                        ...state,
                         length
-                    }
+                    });
                     this.onUpdate(this.playbackState);
-                }
+                })
             })
             .catch(err => {
                 console.log('Failed to fetch length', err);
-                if (this.playbackState) {
+                O.map(this.playbackState)(() => {
                     setTimeout(() => {
                         this.fetchLength.bind(this)();
                     }, 4000);
-                }
+                });
             });
     }
     start(path: string, process: ChildProcess): void {
         console.log('starting', path)
-        this.playbackState = {
+        this.playbackState = O.some({
             path,
             paused: false,
             position: 0,
             length: 0
-        }
+        });
 
         process.on('exit', code => {
             console.log(`VLC child process exited with code ${code}`);
@@ -109,7 +110,7 @@ class VideoState {
             console.log(`VLC child process failed with error ${err}`);
             this.stopped();
         });
-        this.vlcProcess = process;
+        this.vlcProcess = O.some(process);
 
         this.onUpdate(this.playbackState);
 
@@ -117,43 +118,44 @@ class VideoState {
         setTimeout(() => {
             this.fetchLength();
             this.refreshPosition();
-            this.positionPoller = setInterval(this.refreshPosition.bind(this), 5000);
+            this.positionPoller = O.some(setInterval(this.refreshPosition.bind(this), 5000));
         }, 2000);
     }
     pause() {
-        if (this.playbackState) {
-            this.playbackState = {
-                ...this.playbackState,
+        O.map(this.playbackState)(state => {
+            this.playbackState = O.some({
+                ...state,
                 paused: true
-            }
+            });
             this.onUpdate(this.playbackState);
-        }
+        });
     }
     resume() {
-        if (this.playbackState) {
-            this.playbackState = {
-                ...this.playbackState,
+        O.map(this.playbackState)(state => {
+            this.playbackState = O.some({
+                ...state,
                 paused: false
-            }
+            });
             this.onUpdate(this.playbackState);
-        }
+        });
     }
     stopped() {
-        this.vlcProcess = null;
-        if (this.positionPoller) {
-            clearInterval(this.positionPoller);
-        }
-        this.playbackState = null;
+        this.vlcProcess = O.none;
+        O.map(this.positionPoller)(clearInterval);
+        this.playbackState = O.none;
         this.onUpdate(this.playbackState);
     }
     stop() {
-        if (this.vlcProcess) {
-            console.log('Killing vlc process...')
-            this.vlcProcess.kill('SIGTERM')
-        } else {
-            // This shouldn't happen...
-            this.stopped();
-        }
+        O.fold(this.vlcProcess)(
+            process => {
+                console.log('Killing vlc process...')
+                process.kill('SIGTERM')
+            },
+            () => {
+                // This shouldn't happen...
+                this.stopped();
+            }
+        )
     }
 }
 

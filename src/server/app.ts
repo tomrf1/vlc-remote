@@ -3,6 +3,7 @@ import { Clients } from './clients';
 import { VideoState, VIDEO_PATH } from './videoState';
 import { updateVideoHistory } from './videoHistory';
 import * as Vlc from './vlc';
+import * as O from '../shared/option';
 import * as  express from 'express';
 import * as  expressWs from 'express-ws';
 import * as cors from 'cors';
@@ -12,7 +13,7 @@ const app = express()
 
 const clients = new Clients();
 
-const notify = (playbackState: PlaybackState) => clients.notify({
+const notify = (playbackState: O.Option<PlaybackState>) => clients.notify({
   type: 'PLAYBACK',
   playbackState
 });

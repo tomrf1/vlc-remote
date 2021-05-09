@@ -4,22 +4,23 @@ import { VideoList, Video, PlaybackState, VideoRequest } from '../shared/models'
 import { Directory } from './Directory';
 import { Player } from './Player';
 import useInterval from './useInterval';
+import * as O from '../shared/option';
 
 export default function Videos(): React.ReactElement {
     const [videos, setVideos] = useState<VideoList>({});
     const [currentPath, setCurrentPath] = useState<string[]>([]);
-    const [playbackState, setPlaybackState] = useState<PlaybackState>(null);
-    const [websocket, setWebsocket] = useState<WebSocket | null>(null);
+    const [playbackState, setPlaybackState] = useState<O.Option<PlaybackState>>(O.none);
+    const [websocket, setWebsocket] = useState<O.Option<WebSocket>>(O.none);
     const [lastMessageTimestamp, setLastMessageTimestamp] = useState<number>(Date.now());
 
     useEffect(() => {
-        if (websocket === null) {
+        if (O.isEmpty(websocket)) {
             console.log('creating websocket connection')
             try {
                 const ws = new WebSocket(`ws://${window.location.host}/video`);
                 setLastMessageTimestamp(Date.now());
                 ws.onopen = event => {
-                    setWebsocket(ws);
+                    setWebsocket(O.some(ws));
                     setLastMessageTimestamp(Date.now());
                 }
                 ws.onmessage = event => {
@@ -49,14 +50,14 @@ export default function Videos(): React.ReactElement {
     }, [websocket]);
 
     useInterval(() => {
-        if (websocket) {
-            if (websocket.readyState === 3 || lastMessageTimestamp < (Date.now() - 8000)) {
+        O.map(websocket)(ws => {
+            if (ws.readyState === 3 || lastMessageTimestamp < (Date.now() - 8000)) {
                 console.log('heartbeat failed');
-                setWebsocket(null);
+                setWebsocket(O.none);
             } else {
-                websocket.send(JSON.stringify({type: 'PING'}));
+                ws.send(JSON.stringify({type: 'PING'}));
             }
-        }
+        })
     }, 4000);
 
     useEffect(() => {
@@ -68,13 +69,13 @@ export default function Videos(): React.ReactElement {
     }, []);
 
     const wsRequest = (req: VideoRequest): void => {
-        if (websocket) {
-            websocket.send(JSON.stringify(req));
-        }
+        O.map(websocket)(ws => {
+            ws.send(JSON.stringify(req));
+        });
     }
 
     const playVideo = (path: string) => {
-        if (playbackState === null) {
+        if (O.isEmpty(playbackState)) {
             wsRequest({
                 type: 'START',
                 path
@@ -135,14 +136,15 @@ export default function Videos(): React.ReactElement {
                 setViewed={(name: string) => setViewed(buildPath(name))}
                 unsetViewed={(name: string) => unsetViewed(buildPath(name))}
             />
-            { playbackState &&
+            { O.fold(playbackState)(state =>
                 <Player
-                    playbackState={playbackState}
+                    playbackState={state}
                     onTogglePause={togglePause}
                     onStop={stop}
                     onSeek={seek}
-                />
-            }
+                />,
+                () => null,
+            )}
         </div>
     )
 }

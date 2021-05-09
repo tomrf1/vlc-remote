@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { Playing } from '../shared/models';
+import { PlaybackState } from '../shared/models';
 import { removeExtension } from './utils';
 import useInterval from './useInterval';
 import { PauseIcon } from './icons/pauseIcon';
@@ -16,7 +16,7 @@ const minsAndSecs = (s: number): string => {
 }
 
 interface TimerProps {
-    playbackState: Playing;
+    playbackState: PlaybackState;
 }
 function Timer(props: TimerProps): React.ReactElement<TimerProps> {
     const [position, setPosition] = useState<number>(0);
@@ -39,7 +39,7 @@ function Timer(props: TimerProps): React.ReactElement<TimerProps> {
 }
 
 interface PlayerProps {
-    playbackState: Playing;
+    playbackState: PlaybackState;
     onTogglePause: (paused: boolean) => void;
     onSeek: (us: number) => void;
     onStop: () => void;
