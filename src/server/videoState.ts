@@ -75,6 +75,7 @@ class VideoState {
             .length()
             .then(length => {
                 if (this.playbackState) {
+                    console.log('Got length', length);
                     this.playbackState = {
                         ...this.playbackState,
                         length
@@ -84,6 +85,11 @@ class VideoState {
             })
             .catch(err => {
                 console.log('Failed to fetch length', err);
+                if (this.playbackState) {
+                    setTimeout(() => {
+                        this.fetchLength.bind(this)();
+                    }, 4000);
+                }
             });
     }
     start(path: string, process: ChildProcess): void {
@@ -112,7 +118,7 @@ class VideoState {
             this.fetchLength();
             this.refreshPosition();
             this.positionPoller = setInterval(this.refreshPosition.bind(this), 5000);
-        }, 4000);
+        }, 2000);
     }
     pause() {
         if (this.playbackState) {
