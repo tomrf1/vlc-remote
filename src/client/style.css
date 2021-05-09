@@ -75,6 +75,11 @@
     background-image: none;
 }
 
+.timer {
+    margin-left: 5px;
+    margin-bottom: 2px; 
+}
+
 .directory_container {
     margin: 5px;
 }

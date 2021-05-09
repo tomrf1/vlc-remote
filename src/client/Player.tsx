@@ -34,7 +34,7 @@ function Timer(props: TimerProps): React.ReactElement<TimerProps> {
     const positionString = minsAndSecs(position);
 
     return (
-        <div>{positionString} / {lengthString}</div>
+        <div className="timer">{positionString} / {lengthString}</div>
     )
 }
 
