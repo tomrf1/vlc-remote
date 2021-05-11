@@ -136,15 +136,14 @@ export default function Videos(): React.ReactElement {
                 setViewed={(name: string) => setViewed(buildPath(name))}
                 unsetViewed={(name: string) => unsetViewed(buildPath(name))}
             />
-            { O.fold(playbackState)(state =>
+            { O.nonEmpty(playbackState) &&
                 <Player
-                    playbackState={state}
+                    playbackState={playbackState.value}
                     onTogglePause={togglePause}
                     onStop={stop}
                     onSeek={seek}
-                />,
-                () => null,
-            )}
+                />
+            }
         </div>
     )
 }

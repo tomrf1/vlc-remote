@@ -55,16 +55,21 @@ class VideoState {
             return false;
         }
     }
+    modifyPlaybackState(update: Partial<PlaybackState>): void {
+        O.map(this.playbackState)(state => {
+            this.playbackState = O.some({
+                ...state,
+                ...update,
+            });
+            this.onUpdate(this.playbackState);
+        });
+    }
     refreshPosition(): void {
         Vlc
             .position()
             .then(position => {
-                O.map(this.playbackState)(state => {
-                    this.playbackState = O.some({
-                        ...state,
-                        position: parseInt(position)
-                    });
-                    this.onUpdate(this.playbackState);
+                this.modifyPlaybackState({
+                    position: parseInt(position)
                 });
             })
             .catch(err => {
@@ -75,22 +80,16 @@ class VideoState {
         Vlc
             .length()
             .then(length => {
-                O.map(this.playbackState)(state => {
-                    console.log('Got length', length);
-                    this.playbackState = O.some({
-                        ...state,
-                        length
-                    });
-                    this.onUpdate(this.playbackState);
-                })
+                console.log('Got length', length);
+                this.modifyPlaybackState({ length });
             })
             .catch(err => {
                 console.log('Failed to fetch length', err);
-                O.map(this.playbackState)(() => {
+                if (O.nonEmpty(this.playbackState)) {
                     setTimeout(() => {
                         this.fetchLength.bind(this)();
                     }, 4000);
-                });
+                }
             });
     }
     start(path: string, process: ChildProcess): void {
@@ -122,21 +121,13 @@ class VideoState {
         }, 2000);
     }
     pause() {
-        O.map(this.playbackState)(state => {
-            this.playbackState = O.some({
-                ...state,
-                paused: true
-            });
-            this.onUpdate(this.playbackState);
+        this.modifyPlaybackState({
+            paused: true,
         });
     }
     resume() {
-        O.map(this.playbackState)(state => {
-            this.playbackState = O.some({
-                ...state,
-                paused: false
-            });
-            this.onUpdate(this.playbackState);
+        this.modifyPlaybackState({
+            paused: false,
         });
     }
     stopped() {

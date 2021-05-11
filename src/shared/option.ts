@@ -21,7 +21,8 @@ const map = <A,B>(o: Option<A>) => (f: (a: A) => B): Option<B> =>
 const fold = <A,B>(o: Option<A>) => (f: (a: A) => B, g: () => B): B =>
     o.type === 'some' ? f(o.value) : g();
 
-const isEmpty = <A>(o: Option<A>): boolean => o.type === 'none';
+const isEmpty = <A>(o: Option<A>): o is None => o.type === 'none';
+const nonEmpty = <A>(o: Option<A>): o is Some<A> => o.type === 'some';
 
 export {
     Option,
@@ -31,4 +32,5 @@ export {
     map,
     fold,
     isEmpty,
+    nonEmpty,
 }
