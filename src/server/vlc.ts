@@ -13,7 +13,14 @@ const executeToCompletion = (cmd: string): Promise<string> => new Promise((resol
     })
 );
 
-const start = (path: string) => Promise.resolve(spawn('vlc', ['--fullscreen', path]));
+const start = (path: string, subtitles: boolean) => Promise.resolve(spawn(
+    'vlc', 
+    [
+        '--fullscreen', 
+        ...(subtitles ? ['--sub-track', '0'] : []), 
+        path
+    ]
+));
 
 const dbusSend = "dbus-send --type=method_call --dest=org.mpris.MediaPlayer2.vlc /org/mpris/MediaPlayer2";
 
