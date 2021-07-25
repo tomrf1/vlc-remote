@@ -134,6 +134,14 @@
 .directory_viewed label, input {
     cursor: pointer;
 }
-.directory_body {
-    margin-top: 8px;
+
+.directory_subtitles-toggle {
+    display: flex;
+    justify-content: flex-end;
+    font-weight: bold;
+}
+
+.directory_subtitles-toggle .button {
+    border: 1px solid #e0ddd7;
+    background-image: linear-gradient( #63625e, #2e2d2b);
 }

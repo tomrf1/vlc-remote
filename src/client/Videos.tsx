@@ -12,6 +12,7 @@ export default function Videos(): React.ReactElement {
     const [playbackState, setPlaybackState] = useState<O.Option<PlaybackState>>(O.none);
     const [websocket, setWebsocket] = useState<O.Option<WebSocket>>(O.none);
     const [lastMessageTimestamp, setLastMessageTimestamp] = useState<number>(Date.now());
+    const [subtitles, setSubtitles] = useState<boolean>(false);
 
     useEffect(() => {
         if (O.isEmpty(websocket)) {
@@ -78,7 +79,8 @@ export default function Videos(): React.ReactElement {
         if (O.isEmpty(playbackState)) {
             wsRequest({
                 type: 'START',
-                path
+                path,
+                subtitles,
             });
         }
     }
@@ -128,6 +130,7 @@ export default function Videos(): React.ReactElement {
                 path={path}
                 dirs={dirs}
                 files={files}
+                subtitles={subtitles}
                 onBack={() => {
                     setCurrentPath(currentPath.slice(0, -1));
                 }}
@@ -135,6 +138,7 @@ export default function Videos(): React.ReactElement {
                 onPlay={(name: string) => playVideo(buildPath(name))}
                 setViewed={(name: string) => setViewed(buildPath(name))}
                 unsetViewed={(name: string) => unsetViewed(buildPath(name))}
+                setSubtitles={setSubtitles}
             />
             { O.nonEmpty(playbackState) &&
                 <Player

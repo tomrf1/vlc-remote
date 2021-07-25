@@ -7,22 +7,26 @@ interface DirectoryProps {
     path: string;
     dirs: string[];
     files: [string,Video][];
+    subtitles: boolean;
     onBack: () => void;
     onPlay: (name: string) => void;
     onOpen: (name: string) => void;
     setViewed: (name: string) => void;
     unsetViewed: (name: string) => void;
+    setSubtitles: (subtitles: boolean) => void;
 }
 
 export const Directory = ({
     path,
     dirs,
     files,
+    subtitles,
     onBack,
     onPlay,
     onOpen,
     setViewed,
     unsetViewed,
+    setSubtitles,
 }: DirectoryProps): React.ReactElement<DirectoryProps> => {
 
     const renderFile = (name: string, video: Video) => {
@@ -61,6 +65,17 @@ export const Directory = ({
         )  
     }
 
+    const renderSubtitlesToggle = (subtitles: boolean) => (
+        <div className="directory_subtitles-toggle">
+            <div 
+                className={`button ${subtitles ? '' : 'disabled'}`}
+                onClick={() => setSubtitles(!subtitles)}
+            >
+                CC
+            </div>
+        </div>
+    )
+
     return (
         <div className="directory_container">
             <div 
@@ -75,6 +90,7 @@ export const Directory = ({
                 <div className="directory_name">{path}</div>
             </div>
             <div className="directory_body">
+                { renderSubtitlesToggle(subtitles) }
                 {
                     dirs.map(name => renderDir(name))
                 }

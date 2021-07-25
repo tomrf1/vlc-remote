@@ -34,7 +34,7 @@ const processRequest = (request: VideoRequest): Promise<void> => {
   switch(request.type) {
     case 'START':
       if (videoState.isValidPath(request.path)) {
-        return Vlc.start(`${VIDEO_PATH}/${request.path}`)
+        return Vlc.start(`${VIDEO_PATH}/${request.path}`, request.subtitles)
           .then(process => videoState.start(request.path, process));
       } else {
         return Promise.reject(`Invalid video path: ${request.path}`);

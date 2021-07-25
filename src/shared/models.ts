@@ -17,7 +17,8 @@ export interface PlaybackState {
 
 interface VideoStartRequest {
     type: 'START',
-    path: string
+    path: string,
+    subtitles: boolean,
 }
 interface VideoPauseRequest {
     type: 'PAUSE'
