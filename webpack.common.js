@@ -38,6 +38,16 @@ const server =
     output: {
       filename: 'bundle.js',
       path: path.resolve(__dirname, 'dist/server'),
+      library: {
+        type: 'commonjs2'
+      }
+    },
+    externals: {
+      'bufferutil': 'commonjs bufferutil',
+      'utf-8-validate': 'commonjs utf-8-validate'
+    },
+    externalsPresets: {
+      node: true
     },
     module: {
       rules: [
@@ -50,7 +60,15 @@ const server =
     },
     resolve: {
       extensions: ['.ts', '.tsx', '.js', '.jsx']
-    }
+    },
+    ignoreWarnings: [
+      {
+        module: /node_modules\/bufferutil/,
+      },
+      {
+        module: /node_modules\/utf-8-validate/,
+      },
+    ]
   };
 
   module.exports = {
