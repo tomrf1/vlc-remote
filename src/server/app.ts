@@ -6,6 +6,7 @@ import * as Vlc from './vlc';
 import * as O from '../shared/option';
 import express, { Request, Response } from 'express';
 import expressWs from 'express-ws';
+import * as ws from 'ws';
 import cors from 'cors';
 
 const port = 3000;
@@ -56,7 +57,7 @@ const processRequest = (request: VideoRequest): Promise<void> => {
   }
 }
 
-wsApp.ws('/video', (ws: any, req: Request) => {
+wsApp.ws('/video', (ws: ws.WebSocket, req: Request) => {
   const id = clients.addClient(ws);
   console.log('new client', id)
   

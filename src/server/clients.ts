@@ -1,7 +1,7 @@
-import * as WebSocket from 'ws';
+import * as ws from 'ws';
 
 export class Clients {
-    private clients: {[key: string]: WebSocket};
+    private clients: {[key: string]: ws.WebSocket};
     private counter: number;
 
     constructor() {
@@ -9,7 +9,7 @@ export class Clients {
         this.counter = 0;
     }
 
-    addClient(socket: WebSocket): number {
+    addClient(socket: ws.WebSocket): number {
         const id = this.counter++;
         this.clients[id] = socket;
         return id;
