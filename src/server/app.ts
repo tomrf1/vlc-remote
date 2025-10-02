@@ -25,8 +25,6 @@ setInterval(() => videoState.refreshVideoList(), 60000);
 const wsApp = expressWs(app).app;
 
 wsApp.use(cors());
-// @ts-ignore
-wsApp.options('*', cors());
 
 wsApp.use(express.static('dist/client'))
 
