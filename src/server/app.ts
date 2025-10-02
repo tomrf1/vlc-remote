@@ -4,9 +4,9 @@ import { VideoState, VIDEO_PATH } from './videoState';
 import { updateVideoHistory } from './videoHistory';
 import * as Vlc from './vlc';
 import * as O from '../shared/option';
-import * as  express from 'express';
-import * as  expressWs from 'express-ws';
-import * as cors from 'cors';
+import express, { Request, Response } from 'express';
+import expressWs from 'express-ws';
+import cors from 'cors';
 
 const port = 3000;
 const app = express()
@@ -58,7 +58,7 @@ const processRequest = (request: VideoRequest): Promise<void> => {
   }
 }
 
-wsApp.ws('/video', (ws, req) => {
+wsApp.ws('/video', (ws: any, req: Request) => {
   const id = clients.addClient(ws);
   console.log('new client', id)
   
@@ -87,18 +87,18 @@ wsApp.ws('/video', (ws, req) => {
 });
 
 
-wsApp.get('/videos', (req, res) => {
+wsApp.get('/videos', (req: Request, res: Response) => {
   res.send(videoState.getVideoList());
 })
 
-wsApp.post(/^\/videos\/viewed\/(.+)/, (req, res) => {
+wsApp.post(/^\/videos\/viewed\/(.+)/, (req: Request, res: Response) => {
   const path = req.params[0];
   updateVideoHistory(`${VIDEO_PATH}/${path}`, true)
     .then(() => videoState.refreshVideoList())
     .then(() => res.send('ok'))
     .catch(err => res.status(500).send(`${err}`));
 })
-wsApp.delete(/^\/videos\/viewed\/(.+)/, (req, res) => {
+wsApp.delete(/^\/videos\/viewed\/(.+)/, (req: Request, res: Response) => {
   const path = req.params[0]; 
   updateVideoHistory(`${VIDEO_PATH}/${path}`, false)
     .then(() => videoState.refreshVideoList())

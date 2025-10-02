@@ -3,11 +3,15 @@
     "strict": true,
     "outDir": "./dist/",
     "module": "es6",
-    "target": "es6",
-    "jsx": "react",
+    "target": "es2020",
+    "jsx": "react-jsx",
     "allowJs": true,
     "moduleResolution": "node",
-    "baseUrl": "src"
+    "baseUrl": "src",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["dom", "dom.iterable", "es6"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
