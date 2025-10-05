@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PlaybackState } from '../shared/models';
 import { removeExtension } from './utils';
 import useInterval from './useInterval';
@@ -13,6 +13,56 @@ const minsAndSecs = (s: number): string => {
     const mins = `${Math.floor(s/60)}`;
     const seconds = `${s%60}`.padStart(2, '0');
     return `${mins}:${seconds}`;
+}
+
+interface ProgressBarProps {
+    playbackState: PlaybackState;
+    onSeek: (us: number) => void;
+}
+
+function ProgressBar(props: ProgressBarProps): React.ReactElement<ProgressBarProps> {
+    const progressRef = useRef<HTMLDivElement>(null);
+
+    const progress = props.playbackState.length > 0 
+        ? (props.playbackState.position / props.playbackState.length) * 100 
+        : 0;
+
+    const seekToPercentage = (percentage: number) => {
+        const clampedPercentage = Math.max(0, Math.min(1, percentage));
+        const newPosition = clampedPercentage * props.playbackState.length;
+        props.onSeek(newPosition - props.playbackState.position);
+    };
+
+    const handleClick = (e: React.MouseEvent) => {
+        if (!progressRef.current) return;
+        
+        e.preventDefault();
+        
+        const rect = progressRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const percentage = x / rect.width;
+        seekToPercentage(percentage);
+    };
+
+    return (
+        <div className="progressBarContainer">
+            <div 
+                ref={progressRef}
+                className="progressBar"
+                onClick={handleClick}
+                style={{ cursor: 'pointer' }}
+            >
+                <div 
+                    className="progressBarFill"
+                    style={{ width: `${progress}%` }}
+                />
+                <div 
+                    className="progressBarThumb"
+                    style={{ left: `${progress}%` }}
+                />
+            </div>
+        </div>
+    );
 }
 
 interface TimerProps {
@@ -82,6 +132,10 @@ export const Player = ({
                     {'>>'}
                 </div>
             </div>
+            <ProgressBar 
+                playbackState={playbackState}
+                onSeek={onSeek}
+            />
             <Timer 
                 playbackState={playbackState}
             />
